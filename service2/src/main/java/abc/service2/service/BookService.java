@@ -9,7 +9,7 @@ public interface BookService {
 
     List<BookDto> findAll();
 
-    void create(BookEvent bookEvent);
+    BookDto create(BookEvent bookEvent);
 
-    void update(BookEvent bookEvent);
+    BookDto update(BookEvent bookEvent);
 }

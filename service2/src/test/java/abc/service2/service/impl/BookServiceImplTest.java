@@ -7,7 +7,6 @@ import abc.service2.model.dto.BookDto;
 import abc.service2.model.event.BookEvent;
 import abc.service2.repository.BookRepository;
 import abc.service2.sender.TestKafkaSender;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterAll;
@@ -40,9 +39,6 @@ class BookServiceImplTest implements KafkaTestContainer {
 
     @SpyBean
     private BookRepository bookRepository;
-
-    @SpyBean
-    private EntityManager entityManager;
 
     @SpyBean
     private BookEventListener bookEventListener;
@@ -129,7 +125,7 @@ class BookServiceImplTest implements KafkaTestContainer {
         assertEquals(book.getVersion(), dto.getVersion());
         assertEquals(book.getAuthor(), dto.getAuthor());
         assertEquals(book.getGenre(), dto.getGenre());
-        verify(entityManager).persist(any(Book.class));
+        verify(bookRepository).save(any(Book.class));
     }
 
     @Test
@@ -199,6 +195,4 @@ class BookServiceImplTest implements KafkaTestContainer {
                 });
         verify(bookEventListener).listenRented(any(BookEvent.class));
     }
-
-
 }

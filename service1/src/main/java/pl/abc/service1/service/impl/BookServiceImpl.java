@@ -19,6 +19,7 @@ import pl.abc.service1.service.BookService;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -57,16 +58,16 @@ public class BookServiceImpl implements BookService {
         Update update = new Update().set("person", command.getClientName());
         UpdateResult result = mongoTemplate.updateFirst(query, update, Book.class);
 
-        Book book = null;
-        if (result.getMatchedCount() == 1) {
-            book = mongoTemplate.findOne(new Query(Criteria.where("isbn").is(command.getIsbn())), Book.class);
-        }
-        if (book == null) {
+        if (result.getMatchedCount() != 1) {
             throw new BookAlreadyRentedException(MessageFormat
                     .format("Book with given isbn={0} is already rented.", command.getIsbn()));
         }
 
-        BookDto dto = BookMapper.mapToDto(book);
+        Book book = mongoTemplate.findOne(new Query(Criteria.where("isbn").is(command.getIsbn())), Book.class);
+        BookDto dto = Optional.ofNullable(book)
+                .map(BookMapper::mapToDto)
+                .orElseThrow(() -> new BookAlreadyRentedException(MessageFormat
+                    .format("Book with given isbn={0} is already rented.", command.getIsbn())));
         bookSender.send("book_rented", dto);
         return dto;
     }

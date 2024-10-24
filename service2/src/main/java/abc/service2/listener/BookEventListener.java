@@ -20,7 +20,7 @@ public class BookEventListener {
         try {
             bookService.create(bookEvent);
         } catch (Exception e) {
-            log.error("Error processing book_createdevent", e);
+            log.error("Error processing book_created event", e);
         }
     }
 
