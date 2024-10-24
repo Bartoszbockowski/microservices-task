@@ -1,0 +1,7 @@
+spring:
+  data:
+    mongodb:
+      database: test_books
+  kafka:
+    listener:
+      missing-topics-fatal: false

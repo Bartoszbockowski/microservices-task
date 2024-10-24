@@ -1,0 +1,21 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: "jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:book}"
+    username: "${POSTGRES_USER:dev}"
+    password: "${POSTGRES_PWD:root}"
+  jpa:
+    show-sql: true
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog-master.xml
+    enabled: true
+    drop-first: true
+
+kafka:
+  auto-offset-reset: earliest
+  bootstrap-servers: "${KAFKA_SERVER:localhost}:${KAFKA_SERVER_PORT:9092}"
+  group-id: "${KAFKA_GROUP_ID:book-service2}"
