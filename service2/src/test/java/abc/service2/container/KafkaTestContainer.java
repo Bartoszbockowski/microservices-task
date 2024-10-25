@@ -18,6 +18,7 @@ public interface KafkaTestContainer {
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.bootstrap-servers", container::getBootstrapServers);
+        registry.add("spring.kafka.consumer.bootstrap-servers", container::getBootstrapServers);
+        registry.add("spring.kafka.producer.bootstrap-servers", container::getBootstrapServers);
     }
 }

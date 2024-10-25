@@ -17,21 +17,13 @@ public class BookEventListener {
     @KafkaListener(topics = "book_created", groupId = "book-service-2")
     public void listenCreated(BookEvent bookEvent) {
         log.info("Received book_create event: {}", bookEvent);
-        try {
-            bookService.create(bookEvent);
-        } catch (Exception e) {
-            log.error("Error processing book_created event", e);
-        }
+        bookService.create(bookEvent);
     }
 
     @KafkaListener(topics = "book_rented", groupId = "book-service-2")
     public void listenRented(BookEvent bookEvent) {
         log.info("Received book_rented event: {}", bookEvent);
-        try {
-            bookService.update(bookEvent);
-        } catch (Exception e) {
-            log.error("Error processing book_rented event", e);
-        }
+        bookService.update(bookEvent);
     }
 
 }

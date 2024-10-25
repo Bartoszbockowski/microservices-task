@@ -1,38 +1,30 @@
 package abc.service2.configuration;
 
-import abc.service2.deserializer.BookEventDeserializer;
-import abc.service2.model.event.BookEvent;
-import abc.service2.properties.KafkaProperties;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.SQLException;
+import java.text.MessageFormat;
 
-
+@Slf4j
 @Configuration
 public class KafkaConfiguration {
 
     @Bean
-    public ConsumerFactory<String, BookEvent> consumerFactory(KafkaProperties kafkaProperties) {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaProperties.getGroupId());
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BookEventDeserializer.class);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kafkaProperties.getAutoOffsetReset());
-        return new DefaultKafkaConsumerFactory<>(props);
+    public DefaultErrorHandler errorHandler() {
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+                (consumerRecord, exception) ->
+                        log.error(
+                            MessageFormat.format( "Error occurred during {0} event processing: ", consumerRecord.topic()),
+                            exception
+                        ),
+                new FixedBackOff(3000, 3)
+        );
+        errorHandler.addNotRetryableExceptions(SQLException.class);
+        return errorHandler;
     }
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, BookEvent> kafkaListenerContainerFactory(KafkaProperties kafkaProperties) {
-        ConcurrentKafkaListenerContainerFactory<String, BookEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory(kafkaProperties));
-        return factory;
-    }
 }

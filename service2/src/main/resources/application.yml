@@ -14,8 +14,10 @@ spring:
     change-log: classpath:db/changelog-master.xml
     enabled: true
     drop-first: true
-
-kafka:
-  auto-offset-reset: earliest
-  bootstrap-servers: "${KAFKA_SERVER:localhost}:${KAFKA_SERVER_PORT:9092}"
-  group-id: "${KAFKA_GROUP_ID:book-service2}"
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      bootstrap-servers: "${KAFKA_SERVER:localhost}:${KAFKA_SERVER_PORT:9092}"
+      group-id: "${KAFKA_GROUP_ID:book-service2}"
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: abc.service2.deserializer.BookEventDeserializer
