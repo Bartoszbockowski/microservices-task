@@ -2,3 +2,6 @@ spring:
   data:
     mongodb:
       database: test_books
+  kafka:
+    consumer:
+      bootstrap-servers: "localhost:9092"
