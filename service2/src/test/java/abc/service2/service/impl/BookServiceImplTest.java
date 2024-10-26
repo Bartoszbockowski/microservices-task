@@ -6,7 +6,6 @@ import abc.service2.model.Book;
 import abc.service2.model.dto.BookDto;
 import abc.service2.model.event.BookEvent;
 import abc.service2.repository.BookRepository;
-import abc.service2.sender.TestKafkaSender;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterAll;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -35,7 +35,7 @@ class BookServiceImplTest implements KafkaTestContainer {
     private BookServiceImpl bookService;
 
     @Autowired
-    private TestKafkaSender testKafkaSender;
+    private KafkaTemplate<String, BookEvent> kafkaTemplate;
 
     @SpyBean
     private BookRepository bookRepository;
@@ -95,7 +95,7 @@ class BookServiceImplTest implements KafkaTestContainer {
     @Test
     void testCreate_HappyPath_ResultInBookBeingSaved() {
         // given
-        BookDto dto = BookDto.builder()
+        BookEvent event = BookEvent.builder()
                 .isbn("12345678910")
                 .title("Title")
                 .author("Author")
@@ -109,8 +109,8 @@ class BookServiceImplTest implements KafkaTestContainer {
         session.getStatistics().setStatisticsEnabled(true);
 
         // when
-        assertFalse(bookRepository.existsById(dto.getIsbn()));
-        testKafkaSender.send("book_created", dto);
+        assertFalse(bookRepository.existsById(event.getIsbn()));
+        kafkaTemplate.send("book_created", event);
 
         // then
         await().atMost(Duration.ofSeconds(61))
@@ -119,19 +119,19 @@ class BookServiceImplTest implements KafkaTestContainer {
         long queryCount = session.getStatistics().getQueryExecutionCount();
         assertEquals(1, queryCount);
 
-        Book book = bookRepository.findById(dto.getIsbn()).get();
-        assertEquals(book.getTitle(), dto.getTitle());
-        assertEquals(book.getIsbn(), dto.getIsbn());
-        assertEquals(book.getVersion(), dto.getVersion());
-        assertEquals(book.getAuthor(), dto.getAuthor());
-        assertEquals(book.getGenre(), dto.getGenre());
+        Book book = bookRepository.findById(event.getIsbn()).get();
+        assertEquals(book.getTitle(), event.getTitle());
+        assertEquals(book.getIsbn(), event.getIsbn());
+        assertEquals(book.getVersion(), event.getVersion());
+        assertEquals(book.getAuthor(), event.getAuthor());
+        assertEquals(book.getGenre(), event.getGenre());
         verify(bookRepository).save(any(Book.class));
     }
 
     @Test
     void testCreate_AlreadyExists_ResultInBookNotBeingSaved() {
         // given
-        BookDto dto = BookDto.builder()
+        BookEvent event = BookEvent.builder()
                 .isbn("12345678910")
                 .title("Title")
                 .author("Author")
@@ -154,7 +154,7 @@ class BookServiceImplTest implements KafkaTestContainer {
 
         // when
         assertEquals(bookRepository.findAll().size(), 1);
-        testKafkaSender.send("book_created", dto);
+        kafkaTemplate.send("book_created", event);
 
         // then
         await().atMost(Duration.ofSeconds(61))
@@ -165,7 +165,7 @@ class BookServiceImplTest implements KafkaTestContainer {
     @Test
     void testUpdate_HappyPath_ResultInBookBeingUpdated() {
         // given
-        BookDto dto = BookDto.builder()
+        BookEvent event = BookEvent.builder()
                 .isbn("12345678910")
                 .title("Title")
                 .author("Author")
@@ -182,16 +182,16 @@ class BookServiceImplTest implements KafkaTestContainer {
                 .build());
 
         // when
-        Book book = bookRepository.findById(dto.getIsbn()).get();
+        Book book = bookRepository.findById(event.getIsbn()).get();
         assertNull(book.getPerson());
-        testKafkaSender.send("book_rented", dto);
+        kafkaTemplate.send("book_rented", event);
 
         // then
         await().atMost(Duration.ofSeconds(61))
                 .untilAsserted(() -> {
-                    Book updatedBook = bookRepository.findById(dto.getIsbn()).get();
-                    assertEquals(updatedBook.getPerson(), dto.getPerson());
-                    assertEquals(updatedBook.getVersion(), dto.getVersion());
+                    Book updatedBook = bookRepository.findById(event.getIsbn()).get();
+                    assertEquals(updatedBook.getPerson(), event.getPerson());
+                    assertEquals(updatedBook.getVersion(), event.getVersion());
                 });
         verify(bookEventListener).listenRented(any(BookEvent.class));
     }

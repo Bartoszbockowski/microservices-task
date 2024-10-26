@@ -45,9 +45,8 @@ public class BookServiceImpl implements BookService {
         Book book = BookMapper.fromCommand(command);
         mongoTemplate.save(book);
 
-        BookDto dto = BookMapper.mapToDto(book);
-        bookSender.send("book_created", dto);
-        return dto;
+        bookSender.send("book_created", BookMapper.mapToEvent(book));
+        return BookMapper.mapToDto(book);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class BookServiceImpl implements BookService {
                 .map(BookMapper::mapToDto)
                 .orElseThrow(() -> new BookAlreadyRentedException(MessageFormat
                     .format("Book with given isbn={0} is already rented.", command.getIsbn())));
-        bookSender.send("book_rented", dto);
+        bookSender.send("book_rented", BookMapper.mapToEvent(book));
         return dto;
     }
 

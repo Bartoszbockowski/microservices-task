@@ -1,13 +1,13 @@
-package abc.service2.sender;
+package abc.service2.serializer;
 
-import abc.service2.model.dto.BookDto;
+import abc.service2.model.event.BookEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 
-public class BookDtoSerializer implements Serializer<BookDto> {
+public class BookEventSerializer implements Serializer<BookEvent> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -16,7 +16,7 @@ public class BookDtoSerializer implements Serializer<BookDto> {
     }
 
     @Override
-    public byte[] serialize(String topic, BookDto bookDto) {
+    public byte[] serialize(String topic, BookEvent bookDto) {
         try {
             if (bookDto == null) {
                 return null;

@@ -14,13 +14,13 @@ public class BookEventListener {
 
     private final BookService bookService;
 
-    @KafkaListener(topics = "book_created", groupId = "book-service-2")
+    @KafkaListener(topics = "book_created", groupId = "${spring.kafka.consumer.group-id}")
     public void listenCreated(BookEvent bookEvent) {
-        log.info("Received book_create event: {}", bookEvent);
+        log.info("Received book_created event: {}", bookEvent);
         bookService.create(bookEvent);
     }
 
-    @KafkaListener(topics = "book_rented", groupId = "book-service-2")
+    @KafkaListener(topics = "book_rented", groupId = "${spring.kafka.consumer.group-id}")
     public void listenRented(BookEvent bookEvent) {
         log.info("Received book_rented event: {}", bookEvent);
         bookService.update(bookEvent);

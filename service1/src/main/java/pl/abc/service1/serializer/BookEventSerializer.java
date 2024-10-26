@@ -4,11 +4,11 @@ package pl.abc.service1.serializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
-import pl.abc.service1.model.dto.BookDto;
+import pl.abc.service1.model.event.BookEvent;
 
 import java.util.Map;
 
-public class BookDtoSerializer implements Serializer<BookDto> {
+public class BookEventSerializer implements Serializer<BookEvent> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -17,12 +17,12 @@ public class BookDtoSerializer implements Serializer<BookDto> {
     }
 
     @Override
-    public byte[] serialize(String topic, BookDto bookDto) {
+    public byte[] serialize(String topic, BookEvent bookEvent) {
         try {
-            if (bookDto == null) {
+            if (bookEvent == null) {
                 return null;
             }
-            return objectMapper.writeValueAsBytes(bookDto);
+            return objectMapper.writeValueAsBytes(bookEvent);
         } catch (Exception e) {
             throw new SerializationException("Error serializing BookEvent", e);
         }

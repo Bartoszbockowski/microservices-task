@@ -24,7 +24,7 @@ import pl.abc.service1.listenter.TestKafkaListener;
 import pl.abc.service1.model.Book;
 import pl.abc.service1.model.command.CreateBookCommand;
 import pl.abc.service1.model.command.RentBookCommand;
-import pl.abc.service1.model.dto.BookDto;
+import pl.abc.service1.model.event.BookEvent;
 import pl.abc.service1.sender.BookSender;
 import pl.abc.service1.service.BookService;
 
@@ -235,7 +235,7 @@ class BookControllerTest implements MongoDBTestContainer, KafkaTestContainer {
         assertEquals(testKafkaListener.getCreated().size(), 1);
 
         verify(bookService, times(2)).create(command);
-        verify(bookSender).send(eq("book_created"), any(BookDto.class));
+        verify(bookSender).send(eq("book_created"), any(BookEvent.class));
     }
 
     @Test
